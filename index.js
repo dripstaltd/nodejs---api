@@ -1,10 +1,7 @@
-/* --------------------------------------- */
-/* IMPORTS */
-/* --------------------------------------- */
-
 const fs = require('fs');
 const http = require('http');
 const url = require('url');
+const slugify = require('slugify');
 const replaceTemplate = require('./modules/replaceTemplate');
 
 /* --------------------------------------- */
@@ -16,18 +13,9 @@ let rootUrl = new URL('/', m);
 /* --------------------------------------- */
 /* PAGES */
 /* --------------------------------------- */
-const tempOverview = fs.readFileSync(
-  `${__dirname}/templates/template_overview.html`,
-  'utf-8'
-);
-const tempCard = fs.readFileSync(
-  `${__dirname}/templates/template_card.html`,
-  'utf-8'
-);
-const tempProduct = fs.readFileSync(
-  `${__dirname}/templates/template_product.html`,
-  'utf-8'
-);
+const tempOverview = fs.readFileSync(`${__dirname}/templates/template_overview.html`, 'utf-8');
+const tempCard = fs.readFileSync(`${__dirname}/templates/template_card.html`, 'utf-8');
+const tempProduct = fs.readFileSync(`${__dirname}/templates/template_product.html`, 'utf-8');
 
 /* --------------------------------------- */
 /* SERVER */
@@ -37,6 +25,12 @@ const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, 'utf-8');
 // Formating data as JSON
 const dataObj = JSON.parse(data);
 // Data is now usable
+/* --------------------------------------- */
+// SLUGS
+const slugs = dataObj.map((el) => slugify(el.productName, { lower: true }));
+
+console.log(slugs);
+
 /* --------------------------------------- */
 const server = http.createServer((req, res) => {
   const { searchParams, pathname } = new URL(req.url, rootUrl);
@@ -48,9 +42,7 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, {
       'Content-type': 'text/html',
     });
-    const cardsHtml = dataObj
-      .map((el) => replaceTemplate(tempCard, el))
-      .join('');
+    const cardsHtml = dataObj.map((el) => replaceTemplate(tempCard, el)).join('');
 
     const output = tempOverview.replace('{%PRODUCT_CARDS%}', cardsHtml);
     res.end(output);
